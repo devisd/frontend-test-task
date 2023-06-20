@@ -16,11 +16,13 @@ import getUsers from "./services/getUser";
 
 const App = () => {
   // Стейт для массивов пользователей
+
   const [positiveUsers, setPositiveUsers] = useState<User[]>([]);
   const [negativeUsers, setNegativeUsers] = useState<User[]>([]);
   const [neutralUsers, setNeutralUsers] = useState<User[]>([]);
 
   // Стейт для модального окна (открытие, имя пользователя и состояние)
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogUser, setDialogUser] = useState<User | null>(null);
   const [dialogType, setDialogType] = useState<"positive" | "negative" | null>(
@@ -28,11 +30,14 @@ const App = () => {
   );
 
   // Стейт для номера страницы в запросе пользователей
+
   const [page, setPage] = useState<number>(1);
 
-  // Асинхранная функция для первого запроса массивов пользователей
+  // Асинхронная функция для первого запроса массивов пользователей
+
   const getStartUsers = async () => {
     // Получение данных из локального хранилища
+
     const storedData = localStorage.getItem("usersList");
     const storedPositiveData = localStorage.getItem("positiveList");
     const storedNegativeData = localStorage.getItem("negativeList");
@@ -46,6 +51,7 @@ const App = () => {
     console.log("==============================================");
 
     // Если нет данных идет новый запрос
+
     if (!storedData) {
       const response = (await getUsers(0)) as User[];
       const data = response.map((user) => ({ ...user, rating: 0 }));
@@ -53,6 +59,7 @@ const App = () => {
     }
 
     // Парсинг общего массива пользователей из локального хранилища и добавление к каждому пользователю рейтинга
+
     if (storedData) {
       const parsedData: User[] = JSON.parse(storedData);
       const data = parsedData.map((user) => ({ ...user, rating: 0 }));
@@ -61,6 +68,7 @@ const App = () => {
     }
 
     // Парсинг массива пользователей с положительной репутацией из локального хранилища
+
     if (storedPositiveData) {
       const parsedData: User[] = JSON.parse(storedPositiveData);
 
@@ -68,6 +76,7 @@ const App = () => {
     }
 
     // Парсинг массива пользователей с отрицательной репутацией из локального хранилища
+
     if (storedNegativeData) {
       const parsedData: User[] = JSON.parse(storedNegativeData);
 
@@ -76,17 +85,21 @@ const App = () => {
   };
 
   // Запуск функции getStartUsers при загрузке приложения
+
   useEffect(() => {
     getStartUsers();
   }, []);
 
   // Функция обработки кнопки "Добавить еще пользователей"
+
   const handleAddUsers = async () => {
     // Изменение значения переменной "страница"
+
     setPage((prev) => prev + 1);
     console.log("PAGE CHANGE=>", page);
 
     // Запрос на получение массива пользователей и добавление в него свойства рейтинга
+
     const response = (await getUsers(page)) as User[];
     const newUsers = response.map((user) => ({ ...user, rating: 0 }));
     console.log("GET NEW USERS =>", newUsers);
@@ -94,15 +107,18 @@ const App = () => {
     setNeutralUsers([...neutralUsers, ...newUsers]);
 
     // Изменение данных в локальном хранилище для общего массива пользователей
+
     localStorage.setItem("usersList", JSON.stringify(neutralUsers));
   };
 
   // Функция обработки изменения рейтинга пользователей
+
   const handleRatingChange = (user: User, rating: number) => {
     const updatedUser = { ...user, rating };
     console.log("TARGET USER =>", updatedUser);
 
     // Условия для открытия/закрытия модального окна
+
     if (rating > 5) {
       setDialogUser(user);
       setDialogType("positive");
@@ -113,6 +129,7 @@ const App = () => {
       setDialogOpen(true);
     } else {
       // Условия для перемещения пользователей в разные колонки (общая, положительная или отрицательная)
+
       if (rating > 0) {
         setPositiveUsers((prev) => [
           ...prev.filter((u) => u.id !== user.id),
@@ -145,11 +162,13 @@ const App = () => {
   };
 
   // Функция обработки ручного удаления пользователя из массивов
+
   const handleDeleteUser = (user: User) => {
     setNeutralUsers((prev) => prev.filter((u) => u.id !== user.id));
   };
 
   // Функция обработки закрытия модального окна + сброс репутации пользователя
+
   const handleDialogClose = (confirmed: boolean) => {
     setDialogOpen(false);
     if (confirmed && dialogUser) {
@@ -177,10 +196,10 @@ const App = () => {
         }}
       >
         <List
-          sx={{ width: "100%", maxWidth: 460, bgcolor: "background.paper" }}
+          sx={{ width: "100%", maxWidth: 500, bgcolor: "background.paper" }}
         >
           <ListItem>
-            <h3>Neutral Users</h3>
+            <h3>ВСЕ ПОЛЬЗОВАТЕЛИ</h3>
           </ListItem>
           {neutralUsers.map((user) => (
             <ListItem key={user.id}>
@@ -190,7 +209,7 @@ const App = () => {
               <ListItemText
                 style={{ display: "block" }}
                 primary={`${user.first_name} ${user.last_name}`}
-                secondary={user.username}
+                secondary={`/ ${user.username} /`}
               />
               <Button
                 variant="outlined"
@@ -220,10 +239,10 @@ const App = () => {
           </Button>
         </List>
         <List
-          sx={{ width: "100%", maxWidth: 460, bgcolor: "background.paper" }}
+          sx={{ width: "100%", maxWidth: 500, bgcolor: "background.paper" }}
         >
           <ListItem>
-            <h3>Positive Users</h3>
+            <h3>ПОЛОЖИТЕЛЬНЫй РЕЙТИНГ</h3>
           </ListItem>
           {positiveUsers.map((user) => (
             <ListItem key={user.id}>
@@ -232,7 +251,7 @@ const App = () => {
               </ListItemAvatar>
               <ListItemText
                 primary={`${user.first_name} ${user.last_name}`}
-                secondary={user.username}
+                secondary={`/ ${user.username} /`}
               />
               <Button
                 variant="outlined"
@@ -256,13 +275,13 @@ const App = () => {
                   variant="outlined"
                   onClick={() => handleDeleteUser(user)}
                 >
-                  Delete
+                  Удалить
                 </Button>
               )}
             </ListItem>
           ))}
           <ListItem>
-            <h3>Negative Users</h3>
+            <h3>ОТРИЦАТЕЛЬНЫЙ РЕЙТИНГ</h3>
           </ListItem>
           {negativeUsers.map((user) => (
             <ListItem key={user.id}>
@@ -271,7 +290,7 @@ const App = () => {
               </ListItemAvatar>
               <ListItemText
                 primary={`${user.first_name} ${user.last_name}`}
-                secondary={user.username}
+                secondary={`/ ${user.username} /`}
               />
               <Button
                 variant="outlined"
@@ -295,7 +314,7 @@ const App = () => {
                   variant="outlined"
                   onClick={() => handleDeleteUser(user)}
                 >
-                  Delete
+                  Удалить
                 </Button>
               )}
             </ListItem>
