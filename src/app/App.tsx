@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { User } from "./types/types";
+import { User } from "../types/types";
 
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -12,7 +12,14 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
-import getUsers from "./services/getUser";
+import getUsers from "../services/getUser";
+import {
+  getLocalStorageData,
+  parseLocalStorageData,
+  setLocalStorageData,
+} from "../utils/localStorageData";
+import { prevUser, resetUserRating, updateUser } from "../utils/updateUser";
+import { filterUpdatedUser, filterUser } from "../utils/filterUser";
 
 const App = () => {
   // Стейт для массивов пользователей
@@ -37,10 +44,9 @@ const App = () => {
 
   const getStartUsers = async () => {
     // Получение данных из локального хранилища
-
-    const storedData = localStorage.getItem("usersList");
-    const storedPositiveData = localStorage.getItem("positiveList");
-    const storedNegativeData = localStorage.getItem("negativeList");
+    const storedData = getLocalStorageData("usersList");
+    const storedPositiveData = getLocalStorageData("positiveList");
+    const storedNegativeData = getLocalStorageData("negativeList");
 
     console.log("==============================================");
     console.log("== ALL USERS =>", storedData);
@@ -54,15 +60,16 @@ const App = () => {
 
     if (!storedData) {
       const response = (await getUsers(0)) as User[];
-      const data = response.map((user) => ({ ...user, rating: 0 }));
+      const data = updateUser(response);
+
       setNeutralUsers([...neutralUsers, ...data]);
     }
 
     // Парсинг общего массива пользователей из локального хранилища и добавление к каждому пользователю рейтинга
 
     if (storedData) {
-      const parsedData: User[] = JSON.parse(storedData);
-      const data = parsedData.map((user) => ({ ...user, rating: 0 }));
+      const parsedData: User[] = parseLocalStorageData(storedData);
+      const data = updateUser(parsedData);
 
       setNeutralUsers([...neutralUsers, ...data]);
     }
@@ -70,7 +77,7 @@ const App = () => {
     // Парсинг массива пользователей с положительной репутацией из локального хранилища
 
     if (storedPositiveData) {
-      const parsedData: User[] = JSON.parse(storedPositiveData);
+      const parsedData: User[] = parseLocalStorageData(storedPositiveData);
 
       setPositiveUsers([...neutralUsers, ...parsedData]);
     }
@@ -78,7 +85,7 @@ const App = () => {
     // Парсинг массива пользователей с отрицательной репутацией из локального хранилища
 
     if (storedNegativeData) {
-      const parsedData: User[] = JSON.parse(storedNegativeData);
+      const parsedData: User[] = parseLocalStorageData(storedNegativeData);
 
       setNegativeUsers([...neutralUsers, ...parsedData]);
     }
@@ -101,14 +108,13 @@ const App = () => {
     // Запрос на получение массива пользователей и добавление в него свойства рейтинга
 
     const response = (await getUsers(page)) as User[];
-    const newUsers = response.map((user) => ({ ...user, rating: 0 }));
+    const newUsers = updateUser(response);
     console.log("GET NEW USERS =>", newUsers);
 
     setNeutralUsers([...neutralUsers, ...newUsers]);
 
     // Изменение данных в локальном хранилище для общего массива пользователей
-
-    localStorage.setItem("usersList", JSON.stringify(neutralUsers));
+    setLocalStorageData("usersList", neutralUsers);
   };
 
   // Функция обработки изменения рейтинга пользователей
@@ -131,32 +137,23 @@ const App = () => {
       // Условия для перемещения пользователей в разные колонки (общая, положительная или отрицательная)
 
       if (rating > 0) {
-        setPositiveUsers((prev) => [
-          ...prev.filter((u) => u.id !== user.id),
-          updatedUser,
-        ]);
-        setNegativeUsers((prev) => prev.filter((u) => u.id !== user.id));
-        setNeutralUsers((prev) => prev.filter((u) => u.id !== user.id));
+        setPositiveUsers(filterUpdatedUser(user, updatedUser));
+        setNegativeUsers(filterUser(user));
+        setNeutralUsers(filterUser(user));
 
-        localStorage.setItem("usersList", JSON.stringify(neutralUsers));
-        localStorage.setItem("positiveList", JSON.stringify(positiveUsers));
+        setLocalStorageData("usersList", neutralUsers);
+        setLocalStorageData("positiveList", positiveUsers);
       } else if (rating < 0) {
-        setNegativeUsers((prev) => [
-          ...prev.filter((u) => u.id !== user.id),
-          updatedUser,
-        ]);
-        setPositiveUsers((prev) => prev.filter((u) => u.id !== user.id));
-        setNeutralUsers((prev) => prev.filter((u) => u.id !== user.id));
+        setNegativeUsers(filterUpdatedUser(user, updatedUser));
+        setPositiveUsers(filterUser(user));
+        setNeutralUsers(filterUser(user));
 
-        localStorage.setItem("usersList", JSON.stringify(neutralUsers));
-        localStorage.setItem("negativeList", JSON.stringify(negativeUsers));
+        setLocalStorageData("usersList", neutralUsers);
+        setLocalStorageData("negativeList", negativeUsers);
       } else {
-        setNeutralUsers((prev) => [
-          ...prev.filter((u) => u.id !== user.id),
-          updatedUser,
-        ]);
-        setPositiveUsers((prev) => prev.filter((u) => u.id !== user.id));
-        setNegativeUsers((prev) => prev.filter((u) => u.id !== user.id));
+        setNeutralUsers(filterUpdatedUser(user, updatedUser));
+        setPositiveUsers(filterUser(user));
+        setNegativeUsers(filterUser(user));
       }
     }
   };
@@ -164,7 +161,7 @@ const App = () => {
   // Функция обработки ручного удаления пользователя из массивов
 
   const handleDeleteUser = (user: User) => {
-    setNeutralUsers((prev) => prev.filter((u) => u.id !== user.id));
+    setNeutralUsers(filterUser(user));
   };
 
   // Функция обработки закрытия модального окна + сброс репутации пользователя
@@ -173,13 +170,15 @@ const App = () => {
     setDialogOpen(false);
     if (confirmed && dialogUser) {
       if (dialogType === "positive") {
-        setPositiveUsers((prev) => prev.filter((u) => u.id !== dialogUser.id));
-        const resetRating = (dialogUser.rating = 0);
-        setNeutralUsers((prev) => [...prev, dialogUser]);
+        setPositiveUsers(filterUser(dialogUser));
+
+        resetUserRating(dialogUser);
+        setNeutralUsers(prevUser(dialogUser));
       } else if (dialogType === "negative") {
-        setNegativeUsers((prev) => prev.filter((u) => u.id !== dialogUser.id));
-        const resetRating = (dialogUser.rating = 0);
-        setNeutralUsers((prev) => [...prev, dialogUser]);
+        setNegativeUsers(filterUser(dialogUser));
+
+        resetUserRating(dialogUser);
+        setNeutralUsers(prevUser(dialogUser));
       }
     }
     setDialogUser(null);
