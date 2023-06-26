@@ -1,5 +1,7 @@
 import Button from "@mui/material/Button";
-import { User } from "../types/types";
+import { User } from "../../../types/types";
+
+import styles from "../../../assets/styles/Buttons.module.css";
 
 interface IProps {
   user: User;
@@ -8,7 +10,7 @@ interface IProps {
 
 export const Buttons: React.FC<IProps> = ({ user, onClick }) => {
   return (
-    <>
+    <div className={styles.buttons}>
       <Button
         variant="outlined"
         color="error"
@@ -16,7 +18,7 @@ export const Buttons: React.FC<IProps> = ({ user, onClick }) => {
       >
         -
       </Button>
-      <span style={{ display: "block", margin: "0 10px" }}>{user.rating}</span>
+      <span className={styles.buttons__value}>{user.rating}</span>
       <Button
         variant="outlined"
         color="success"
@@ -24,6 +26,6 @@ export const Buttons: React.FC<IProps> = ({ user, onClick }) => {
       >
         +
       </Button>
-    </>
+    </div>
   );
 };

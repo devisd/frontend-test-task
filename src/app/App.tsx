@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 
 import { User } from "../types/types";
@@ -9,12 +10,14 @@ import {
 } from "../utils/localStorageData";
 import { addNewUsers, prevUser, resetUserRating } from "../utils/updateUser";
 import { filterUpdatedUser, filterUser } from "../utils/filterUser";
-import { Modal } from "../modal/Modal";
-import { AddUserButton } from "../buttons/AddUserButton";
-import { UserListItem } from "../userList/UserListItem";
-import { ListTitle } from "../userList/ListTitle";
+import { Modal } from "./modal/Modal";
+import { AddUserButton } from "./userList/buttons/AddUserButton";
+import { UserListItem } from "./userList/UserListItem";
+import { ListTitle } from "./userList/ListTitle";
 
 import List from "@mui/material/List";
+
+import styles from "../assets/styles/App.module.css";
 
 const App = () => {
   // Стейт для массивов пользователей
@@ -72,7 +75,6 @@ const App = () => {
   const handleRatingChange = (user: User, rating: number) => {
     const updatedUser = { ...user, rating };
     console.log("TARGET USER =>", updatedUser);
-
     // Условия для открытия/закрытия модального окна
     if (rating > 5) {
       setDialogUser(user);
@@ -127,33 +129,40 @@ const App = () => {
   };
 
   return (
-    <>
-      <div
-        style={{ display: "flex", justifyContent: "space-evenly", padding: 30 }}
-      >
-        <List sx={{ width: "100%", maxWidth: 500 }}>
-          <ListTitle title={"ВСЕ ПОЛЬЗОВАТЕЛИ"} />
-          <UserListItem users={neutralUsers} onClick={handleRatingChange} />
-          <AddUserButton
-            onClick={handleAddUsers}
-            textButton={"Добавить еще пользователей"}
+    <div className={styles.container}>
+      <div>
+        <List className={styles.list}>
+          <ListTitle
+            title={"ВСЕ ПОЛЬЗОВАТЕЛИ"}
+            className={styles.list__title}
           />
+          <UserListItem users={neutralUsers} onClick={handleRatingChange} />
         </List>
-        <List sx={{ width: "100%", maxWidth: 500 }}>
-          <ListTitle title={"ПОЛОЖИТЕЛЬНЫй РЕЙТИНГ"} />
-          <UserListItem users={positiveUsers} onClick={handleRatingChange} />
-          <ListTitle title={"ОТРИЦАТЕЛЬНЫЙ РЕЙТИНГ"} />
-          <UserListItem users={negativeUsers} onClick={handleRatingChange} />
-        </List>
-
-        <Modal
-          dialogOpen={dialogOpen}
-          handleDialogClose={handleDialogClose}
-          dialogType={dialogType}
-          dialogUser={dialogUser}
+        <AddUserButton
+          onClick={handleAddUsers}
+          textButton={"Добавить еще пользователей"}
         />
       </div>
-    </>
+      <List className={styles.list}>
+        <ListTitle
+          title={"ПОЛОЖИТЕЛЬНЫЙ РЕЙТИНГ"}
+          className={styles.list__title}
+        />
+        <UserListItem users={positiveUsers} onClick={handleRatingChange} />
+        <ListTitle
+          title={"ОТРИЦАТЕЛЬНЫЙ РЕЙТИНГ"}
+          className={styles.list__title}
+        />
+        <UserListItem users={negativeUsers} onClick={handleRatingChange} />
+      </List>
+
+      <Modal
+        dialogOpen={dialogOpen}
+        handleDialogClose={handleDialogClose}
+        dialogType={dialogType}
+        dialogUser={dialogUser}
+      />
+    </div>
   );
 };
 

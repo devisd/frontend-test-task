@@ -3,7 +3,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
-import { User } from "../types/types";
+import { User } from "../../types/types";
 
 interface IProps {
   dialogOpen: boolean;

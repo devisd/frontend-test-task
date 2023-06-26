@@ -1,5 +1,7 @@
 import Button from "@mui/material/Button";
 
+import styles from "../../..//assets/styles/Buttons.module.css";
+
 type Props = {
   onClick: () => void;
   textButton: string;
@@ -7,10 +9,10 @@ type Props = {
 
 export const AddUserButton: React.FC<Props> = ({ onClick, textButton }) => {
   return (
-    <>
-      <Button variant="outlined" onClick={onClick} style={{ marginTop: 30 }}>
+    <div className={styles.buttons__add}>
+      <Button variant="outlined" onClick={onClick}>
         {textButton}
       </Button>
-    </>
+    </div>
   );
 };
